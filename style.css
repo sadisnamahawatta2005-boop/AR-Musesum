@@ -1,0 +1,139 @@
+/* ==========================================================================
+   AR MINI MUSEUM - ULTRA-CLEAN HUD STYLES
+   Minimal, non-intrusive status banner leaving 100% of the screen for AR.
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000000;
+}
+
+/* ==========================================================================
+   STATUS BANNER (Mandatory Lecture Requirement 5)
+   ========================================================================== */
+
+#status-banner {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+#status-banner.status-searching {
+  background: rgba(220, 38, 38, 0.88);
+  border: 1px solid #ef4444;
+}
+
+#status-banner.status-detected {
+  background: rgba(16, 185, 129, 0.9);
+  border: 1px solid #34d399;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.7);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  background: #ffffff;
+}
+
+#status-banner.status-searching .status-dot {
+  animation: pulseDot 1.4s infinite;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+/* Optional Marker Helper Button (Top Right) */
+#btn-marker-help {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 999;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #ffd700;
+  color: #ffd700;
+  padding: 7px 12px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all 0.2s ease;
+}
+
+#btn-marker-help:hover {
+  background: #ffd700;
+  color: #000000;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.modal-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-card {
+  background: #0f172a;
+  border: 1px solid #ffd700;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+}
+
+.close-x {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #bbb;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.close-x:hover {
+  color: #fff;
+}

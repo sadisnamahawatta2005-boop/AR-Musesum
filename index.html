@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AR Mini Museum</title>
+
+  <!-- A-Frame Library -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+
+  <!-- AR.js for A-Frame -->
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
+
+  <!-- Custom A-Frame Components -->
+  <script>
+    // 1. Workshop Ball Color Change Component
+    AFRAME.registerComponent('change-color', {
+      init: function () {
+        const colors = ['#e53e3e', '#3182ce', '#38a169', '#ecc94b', '#805ad5', '#ed8936', '#ffd700', '#00f0ff'];
+        let idx = 0;
+        const trigger = (e) => {
+          if (e) e.stopPropagation();
+          idx = (idx + 1) % colors.length;
+          this.el.setAttribute('color', colors[idx]);
+          this.el.setAttribute('material', 'color', colors[idx]);
+        };
+        this.el.addEventListener('click', trigger);
+        this.el.addEventListener('touchstart', trigger);
+      }
+    });
+
+    // 2. Custom Tappable Growing Relic Component (Assignment Rubric Requirement)
+    AFRAME.registerComponent('interactive-transform', {
+      init: function () {
+        let expanded = false;
+        const origScale = { x: 0.22, y: 0.22, z: 0.22 };
+        const trigger = (e) => {
+          if (e) e.stopPropagation();
+          expanded = !expanded;
+          const s = expanded ? 0.35 : 0.22;
+          this.el.setAttribute('animation', {
+            property: 'scale',
+            to: `${s} ${s} ${s}`,
+            dur: 300,
+            easing: 'easeOutElastic'
+          });
+          this.el.setAttribute('material', 'emissive', expanded ? '#ffd700' : '#000000');
+          this.el.setAttribute('material', 'emissiveIntensity', expanded ? '0.6' : '0');
+        };
+        this.el.addEventListener('click', trigger);
+        this.el.addEventListener('touchstart', trigger);
+      }
+    });
+  </script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body style="margin: 0; overflow: hidden; background-color: #000;">
+
+  <!-- ======================================================================
+       STATUS BANNER (Changes text and color when marker is found / lost)
+       ====================================================================== -->
+  <div id="status-banner" class="status-searching">
+    <span class="status-dot"></span>
+    <span id="status-text">Searching for Hiro Marker... Point camera at marker</span>
+  </div>
+
+  <!-- Optional helper button to view/download the Hiro marker -->
+  <button id="btn-marker-help" title="Show Hiro Marker">📄 Hiro Marker</button>
+
+  <!-- Hiro Marker Popup Modal -->
+  <div id="marker-popup" class="modal-backdrop">
+    <div class="modal-card">
+      <button id="btn-close-popup" class="close-x">&times;</button>
+      <h3 style="margin: 0 0 8px; color: #ffd700;">Hiro AR Marker</h3>
+      <p style="margin: 0 0 12px; font-size: 13px; color: #bbb;">Hold this marker up to your webcam, or display it on your phone:</p>
+      <img src="assets/markers/hiro.png" alt="Hiro Marker" style="width: 200px; height: 200px; background: white; padding: 10px; border-radius: 8px;">
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       AR.JS 3D SCENE
+       ====================================================================== -->
+  <a-scene
+    embedded
+    arjs="sourceType: webcam; debugUIEnabled: false;"
+    renderer="antialias: true; alpha: true; colorManagement: true;"
+    cursor="rayOrigin: mouse"
+    raycaster="objects: .clickable; interval: 50"
+    vr-mode-ui="enabled: false">
+
+    <!-- Preloaded Assets -->
+    <a-assets>
+      <a-asset-item id="elephantModel" src="assets/models/elephant_3d_model.glb"></a-asset-item>
+    </a-assets>
+
+    <!-- Multi-Angle Studio Lighting for Maximum 3D Clarity -->
+    <a-entity light="type: ambient; color: #ffffff; intensity: 1.8"></a-entity>
+    <a-entity light="type: directional; color: #ffffff; intensity: 2.0" position="1 4 2"></a-entity>
+    <a-entity light="type: directional; color: #ffd580; intensity: 1.0" position="-2 3 -2"></a-entity>
+
+    <!-- Camera -->
+    <a-entity camera>
+      <a-entity cursor="fuse: false; rayOrigin: mouse" raycaster="objects: .clickable; interval: 50"></a-entity>
+    </a-entity>
+
+    <!-- ==================================================================
+         HIRO MARKER CONTENT
+         ================================================================== -->
+    <a-marker
+      preset="hiro"
+      id="hiro-marker"
+      emitevents="true">
+
+      <!-- 1. 3D GLB MODEL: Royal Guardian Elephant Statue (Center) -->
+      <a-entity
+        gltf-model="#elephantModel"
+        position="0 0.1 0.2"
+        scale="0.25 0.25 0.25"
+        class="clickable"
+        change-color>
+      </a-entity>
+
+      <!-- 2. ANCIENT POTTERY: Terracotta Urn Amphora (Left) -->
+      <a-entity position="-1 0.2 0" animation="property: rotation; to: 0 360 0; loop: true; dur: 6000; easing: linear">
+        <!-- Urn Body -->
+        <a-sphere position="0 0.35 0" radius="0.25" scale="1 1.25 1" color="#d9531e" class="clickable" change-color></a-sphere>
+        <!-- Urn Neck -->
+        <a-cylinder position="0 0.65 0" radius-bottom="0.14" radius-top="0.11" height="0.25" color="#d9531e" class="clickable" change-color></a-cylinder>
+        <!-- Urn Lip -->
+        <a-torus position="0 0.77 0" rotation="90 0 0" radius="0.13" radius-tubular="0.02" color="#ffd700"></a-torus>
+        <!-- Handles -->
+        <a-torus position="-0.2 0.58 0" rotation="0 0 45" radius="0.14" radius-tubular="0.02" arc="180" color="#ffd700" class="clickable" change-color></a-torus>
+        <a-torus position="0.2 0.58 0" rotation="0 0 -45" radius="0.14" radius-tubular="0.02" arc="180" color="#ffd700" class="clickable" change-color></a-torus>
+      </a-entity>
+
+      <!-- 3. HISTORICAL BUILDING: Classical Parthenon Temple (Right) -->
+      <a-entity position="1 0.1 0">
+        <!-- Base Steps -->
+        <a-box position="0 0.05 0" width="0.75" depth="0.5" height="0.06" color="#cbd5e0"></a-box>
+        <!-- 4 Columns -->
+        <a-cylinder position="-0.26 0.3 0.18" radius="0.03" height="0.45" color="#ffffff" class="clickable" change-color></a-cylinder>
+        <a-cylinder position="0.26 0.3 0.18" radius="0.03" height="0.45" color="#ffffff" class="clickable" change-color></a-cylinder>
+        <a-cylinder position="-0.26 0.3 -0.18" radius="0.03" height="0.45" color="#ffffff" class="clickable" change-color></a-cylinder>
+        <a-cylinder position="0.26 0.3 -0.18" radius="0.03" height="0.45" color="#ffffff" class="clickable" change-color></a-cylinder>
+        <!-- Roof Architrave -->
+        <a-box position="0 0.55 0" width="0.75" depth="0.5" height="0.05" color="#ffffff"></a-box>
+        <!-- Pediment Gables -->
+        <a-cone position="0 0.67 0.22" radius-bottom="0.4" radius-top="0.01" height="0.18" scale="1 1 0.1" color="#ffd700" class="clickable" change-color></a-cone>
+      </a-entity>
+
+      <!-- 4. ANCIENT SWORD: Roman Gladius (Back Left) -->
+      <a-entity position="-0.7 0.5 0.9" rotation="15 30 0" animation="property: rotation; to: 15 390 0; loop: true; dur: 7000; easing: linear">
+        <a-box position="0 0.35 0" width="0.08" depth="0.015" height="0.6" color="#e2e8f0" class="clickable" change-color></a-box>
+        <a-cone position="0 0.7 0" radius-bottom="0.04" radius-top="0.005" height="0.12" color="#e2e8f0"></a-cone>
+        <a-box position="0 0.03 0" width="0.22" depth="0.05" height="0.04" color="#ffd700"></a-box>
+        <a-cylinder position="0 -0.06 0" radius="0.025" height="0.14" color="#744210"></a-cylinder>
+        <a-sphere position="0 -0.15 0" radius="0.045" color="#ffd700"></a-sphere>
+      </a-entity>
+
+      <!-- 5. ANCIENT COINS: Roman Gold Aureus (Back Right) -->
+      <a-entity position="0.7 0.5 0.9" animation="property: rotation; to: 0 360 0; loop: true; dur: 4500; easing: linear">
+        <a-cylinder position="0 0 0" rotation="90 0 0" radius="0.3" height="0.04" color="#ffd700" class="clickable" change-color></a-cylinder>
+        <a-torus position="0 0 0" rotation="90 0 0" radius="0.29" radius-tubular="0.018" color="#b7791f"></a-torus>
+        <a-sphere position="0 0 0.025" radius="0.13" scale="1 1.25 0.15" color="#d69e2e"></a-sphere>
+      </a-entity>
+
+      <!-- 6. ANIMATED WORKSHOP BOUNCING BALL (Lecture Step 5 Item) -->
+      <a-sphere
+        position="0 0.6 -0.6"
+        radius="0.22"
+        color="#3182ce"
+        change-color
+        class="clickable"
+        animation="property: position; from: 0 0.4 -0.6; to: 0 1.2 -0.6; dir: alternate; loop: true; dur: 1800">
+      </a-sphere>
+
+      <!-- 7. NEW TAPPABLE GROWING RELIC (Rubric Item 4 Custom Component) -->
+      <a-sphere
+        position="0 1.2 0.2"
+        scale="0.22 0.22 0.22"
+        color="#ffd700"
+        interactive-transform
+        class="clickable"
+        animation="property: position; from: 0 1.15 0.2; to: 0 1.3 0.2; dir: alternate; loop: true; dur: 2200">
+      </a-sphere>
+
+      <!-- 8. 3D TEXT BANNER (from Lecture Step 5) -->
+      <a-text
+        value="Welcome to Sri Lanka Museum"
+        position="0 1.6 0"
+        color="#ffd700"
+        width="4.2"
+        align="center">
+      </a-text>
+
+    </a-marker>
+
+  </a-scene>
+
+  <!-- Core JavaScript -->
+  <script src="script.js"></script>
+
+</body>
+</html>
